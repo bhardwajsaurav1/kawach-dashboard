@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Cache & Temporary Directories
+mongo_cache/
+mongo_bin/
+.DS_Store
+
+# Environment & Logs
+.env
+*.log
+
+# Build Outputs
+frontend/dist
+dist/
