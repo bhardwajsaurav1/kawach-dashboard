@@ -16,11 +16,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/backend/index.js"
+      "dest": "backend/index.js"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/favicon.(.*)",
+      "dest": "/favicon.$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "/index.html"
     }
   ]
 }
