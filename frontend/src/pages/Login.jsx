@@ -36,7 +36,7 @@ export default function Login() {
     btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span><span class="font-label-caps uppercase tracking-widest">Verifying Identity...</span>`;
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
