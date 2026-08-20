@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const Personnel = require('../models/Personnel');
 const { protect } = require('../middleware/auth');
 
@@ -21,15 +22,13 @@ const generateSamplePersonnel = () => {
 };
 
 // @route   GET /api/personnel
-// @desc    Get all personnel
-// @access  Private
 router.get('/', protect, async (req, res) => {
-  try {
-    let personnel = [];
-    try {
-      personnel = await Personnel.find({}).populate('assignedTank', 'registrationNumber tankModel');
-    } catch (e) {}
+  if (mongoose.connection.readyState !== 1) {
+    return res.json(generateSamplePersonnel());
+  }
 
+  try {
+    let personnel = await Personnel.find({}).populate('assignedTank', 'registrationNumber tankModel');
     if (!personnel || personnel.length === 0) {
       personnel = generateSamplePersonnel();
     }
@@ -40,13 +39,11 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   POST /api/personnel
-// @desc    Create new personnel record (Enlistment)
-// @access  Private
 router.post('/', protect, async (req, res) => {
   try {
     const { armyId, fullName, rank, unit, branch, securityClearance, notes } = req.body;
     let personnel;
-    try {
+    if (mongoose.connection.readyState === 1) {
       personnel = await Personnel.create({
         armyId,
         fullName,
@@ -56,7 +53,7 @@ router.post('/', protect, async (req, res) => {
         securityClearance,
         notes
       });
-    } catch (e) {
+    } else {
       personnel = { _id: `pers-${Date.now()}`, armyId, fullName, rank, unit, branch: branch || 'Armoured Corps', securityClearance };
     }
     res.status(201).json(personnel);
@@ -66,14 +63,15 @@ router.post('/', protect, async (req, res) => {
 });
 
 // @route   GET /api/personnel/:id
-// @desc    Get personnel by ID
-// @access  Private
 router.get('/:id', protect, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    const sample = generateSamplePersonnel();
+    const personnel = sample.find(p => p._id === req.params.id || p.armyId === req.params.id) || sample[0];
+    return res.json(personnel);
+  }
+
   try {
-    let personnel;
-    try {
-      personnel = await Personnel.findById(req.params.id).populate('assignedTank');
-    } catch (e) {}
+    let personnel = await Personnel.findById(req.params.id).populate('assignedTank');
     if (!personnel) {
       const sample = generateSamplePersonnel();
       personnel = sample.find(p => p._id === req.params.id || p.armyId === req.params.id) || sample[0];

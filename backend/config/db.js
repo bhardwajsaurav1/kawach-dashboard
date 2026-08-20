@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 
+mongoose.set('bufferCommands', false);
+mongoose.set('bufferTimeoutMS', 100);
+
 let isConnected = false;
 
 const connectDB = async () => {
@@ -12,7 +15,7 @@ const connectDB = async () => {
   const uri = process.env.MONGO_URI;
   if (uri) {
     try {
-      await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
+      await mongoose.connect(uri, { serverSelectionTimeoutMS: 2000 });
       isConnected = true;
       console.log('MongoDB connected successfully:', uri);
       return;
@@ -21,19 +24,18 @@ const connectDB = async () => {
     }
   }
 
-  // Try local MongoDB
+  // If in Vercel serverless environment without MONGO_URI, return immediately (0ms latency)
+  if (process.env.VERCEL) {
+    return;
+  }
+
+  // Try local MongoDB (local development only)
   try {
-    await mongoose.connect('mongodb://localhost:27017/kavach', { serverSelectionTimeoutMS: 1500 });
+    await mongoose.connect('mongodb://localhost:27017/kavach', { serverSelectionTimeoutMS: 1000 });
     isConnected = true;
     console.log('Local MongoDB connected');
     return;
   } catch (err) {
-    // If running in Vercel serverless environment without MONGO_URI, return gracefully
-    if (process.env.VERCEL) {
-      console.log('Running in Vercel serverless environment without active MONGO_URI.');
-      return;
-    }
-
     console.log('Local MongoDB connection unavailable. Initializing In-Memory MongoDB Server...');
     try {
       const { MongoMemoryServer } = require('mongodb-memory-server');

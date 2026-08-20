@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const { protect } = require('../middleware/auth');
 const LeaveRequest = require('../models/LeaveRequest');
 const SpareRequest = require('../models/SpareRequest');
@@ -50,21 +51,21 @@ const getSampleDashboardData = (userId, fullName) => {
 };
 
 // @route   GET /api/dashboard-data
-// @desc    Get all custom dashboard records
 router.get('/', protect, async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.json(getSampleDashboardData(req.user._id, req.user.fullName));
+  }
+
   try {
-    let leaveRequests = [], spareRequests = [], workOrders = [], issues = [], messages = [], events = [], documents = [], activityLogs = [], announcements = [];
-    try {
-      leaveRequests = await LeaveRequest.find({});
-      spareRequests = await SpareRequest.find({});
-      workOrders = await WorkOrder.find({});
-      issues = await Issue.find({});
-      messages = await Message.find({}).sort({ createdAt: -1 });
-      events = await Event.find({});
-      documents = await Document.find({});
-      activityLogs = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(10);
-      announcements = await Notification.find({ type: 'Announcement' }).sort({ date: -1 }).limit(5);
-    } catch (e) {}
+    const leaveRequests = await LeaveRequest.find({});
+    const spareRequests = await SpareRequest.find({});
+    const workOrders = await WorkOrder.find({});
+    const issues = await Issue.find({});
+    const messages = await Message.find({}).sort({ createdAt: -1 });
+    const events = await Event.find({});
+    const documents = await Document.find({});
+    const activityLogs = await ActivityLog.find({}).sort({ createdAt: -1 }).limit(10);
+    const announcements = await Notification.find({ type: 'Announcement' }).sort({ date: -1 }).limit(5);
 
     const sample = getSampleDashboardData(req.user._id, req.user.fullName);
 
@@ -88,7 +89,9 @@ router.get('/', protect, async (req, res) => {
 router.post('/leave', protect, async (req, res) => {
   try {
     const leave = { _id: `leave-${Date.now()}`, user: req.user._id, fullName: req.user.fullName, duration: req.body.duration, reason: req.body.reason, status: 'Pending', priority: req.body.priority || 'Medium' };
-    try { await LeaveRequest.create(leave); } catch (e) {}
+    if (mongoose.connection.readyState === 1) {
+      await LeaveRequest.create(leave);
+    }
     res.status(201).json(leave);
   } catch (e) { res.status(201).json({ _id: `leave-${Date.now()}`, ...req.body }); }
 });
@@ -96,7 +99,9 @@ router.post('/leave', protect, async (req, res) => {
 router.post('/spare', protect, async (req, res) => {
   try {
     const spare = { _id: `spare-${Date.now()}`, user: req.user._id, fullName: req.user.fullName, item: req.body.item, qty: req.body.qty, dept: req.body.dept, status: 'Pending', priority: req.body.priority || 'Medium' };
-    try { await SpareRequest.create(spare); } catch (e) {}
+    if (mongoose.connection.readyState === 1) {
+      await SpareRequest.create(spare);
+    }
     res.status(201).json(spare);
   } catch (e) { res.status(201).json({ _id: `spare-${Date.now()}`, ...req.body }); }
 });
@@ -104,7 +109,9 @@ router.post('/spare', protect, async (req, res) => {
 router.post('/workorder', protect, async (req, res) => {
   try {
     const order = { _id: `wo-${Date.now()}`, user: req.user._id, fullName: req.user.fullName, title: req.body.title, desc: req.body.desc, dept: req.body.dept, status: 'Pending', priority: req.body.priority || 'Medium' };
-    try { await WorkOrder.create(order); } catch (e) {}
+    if (mongoose.connection.readyState === 1) {
+      await WorkOrder.create(order);
+    }
     res.status(201).json(order);
   } catch (e) { res.status(201).json({ _id: `wo-${Date.now()}`, ...req.body }); }
 });
@@ -112,7 +119,9 @@ router.post('/workorder', protect, async (req, res) => {
 router.post('/issue', protect, async (req, res) => {
   try {
     const issue = { _id: `issue-${Date.now()}`, user: req.user._id, fullName: req.user.fullName, title: req.body.title, desc: req.body.desc, dept: req.body.dept, status: 'Open', priority: req.body.priority || 'Medium' };
-    try { await Issue.create(issue); } catch (e) {}
+    if (mongoose.connection.readyState === 1) {
+      await Issue.create(issue);
+    }
     res.status(201).json(issue);
   } catch (e) { res.status(201).json({ _id: `issue-${Date.now()}`, ...req.body }); }
 });
@@ -120,7 +129,9 @@ router.post('/issue', protect, async (req, res) => {
 router.post('/message', protect, async (req, res) => {
   try {
     const msg = { _id: `msg-${Date.now()}`, senderName: req.user.fullName, senderRole: req.user.role, text: req.body.text, unread: true, replies: [] };
-    try { await Message.create(msg); } catch (e) {}
+    if (mongoose.connection.readyState === 1) {
+      await Message.create(msg);
+    }
     res.status(201).json(msg);
   } catch (e) { res.status(201).json({ _id: `msg-${Date.now()}`, ...req.body }); }
 });
