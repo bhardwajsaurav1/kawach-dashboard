@@ -13,3 +13,5 @@ mongo_bin/
 # Build Outputs
 frontend/dist
 dist/
+
+.vercel
