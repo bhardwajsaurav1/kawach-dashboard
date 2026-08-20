@@ -1,0 +1,7 @@
+node_modules/
+mongo_cache/
+mongo_bin/
+frontend/dist/
+dist/
+.git/
+.env

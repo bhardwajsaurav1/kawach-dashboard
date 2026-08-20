@@ -1,0 +1,11 @@
+{
+  "name": "kavach-epms-root",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install"
+  }
+}
